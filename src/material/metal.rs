@@ -28,6 +28,7 @@ impl Material for Metal {
         *scattered = Ray::new(
             &rec.p,
             &(reflected + self.fuzz * Vec3::random_in_unit_sphere()),
+            r_in.time(),
         );
         *attenuation = self.albedo.clone();
         scattered.dir().dot(&rec.normal) > 0.0

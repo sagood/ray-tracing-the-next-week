@@ -6,6 +6,7 @@ use std::{
 use material::material::Material;
 use model::{
     hit::{HitRecord, Hittable},
+    moving_sphere::MovingSphere,
     ray::Ray,
     vec3::Vec3,
 };
@@ -27,10 +28,10 @@ mod util;
 
 fn main() {
     // Image
-    const ASPECT_RATIO: f64 = 3.0 / 2.0;
-    const IMAGE_WIDTH: usize = 1200;
+    const ASPECT_RATIO: f64 = 16.0 / 9.0;
+    const IMAGE_WIDTH: usize = 400;
     const IMAGE_HEIGHT: usize = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as usize;
-    const SAMPLES_PER_PIXEL: usize = 500;
+    const SAMPLES_PER_PIXEL: usize = 100;
     const MAX_DEPTH: i32 = 50;
 
     // World
@@ -50,6 +51,8 @@ fn main() {
         ASPECT_RATIO,
         aperture,
         dist_to_focus,
+        0.0,
+        1.0,
     );
 
     // Render
@@ -83,7 +86,7 @@ fn ray_color(r: &Ray, world: &dyn Hittable, depth: i32) -> Vec3 {
     }
 
     if world.hit(r, 0.001, INFINITY, &mut rec) {
-        let mut scattered = Ray::new(&Vec3::new(0.0, 0.0, 0.0), &Vec3::new(0.0, 0.0, 0.0));
+        let mut scattered = Ray::new(&Vec3::new(0.0, 0.0, 0.0), &Vec3::new(0.0, 0.0, 0.0), 0.0);
         let mut attenuation = Vec3::new(0.0, 0.0, 0.0);
         if rec
             .material
@@ -124,7 +127,15 @@ pub fn random_scene() -> HittableList {
                     // diffuse
                     let albedo = Vec3::random() * Vec3::random();
                     sphere_material = Arc::new(Lambertian::new(&albedo));
-                    world.add(Arc::new(Sphere::new(center, 0.2, sphere_material)));
+                    let center2 = center + Vec3::new(0.0, random_double_by_range(0.0, 0.5), 0.0);
+                    world.add(Arc::new(MovingSphere::new(
+                        center,
+                        center2,
+                        0.0,
+                        1.0,
+                        0.2,
+                        sphere_material,
+                    )));
                 } else if choose_mat < 0.95 {
                     // metal
                     let albedo = Vec3::random_by_range(0.5, 1.0);
