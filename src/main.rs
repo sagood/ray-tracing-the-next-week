@@ -37,11 +37,27 @@ fn main() {
     const MAX_DEPTH: i32 = 50;
 
     // World
-    let world = random_scene();
+    let mut world = HittableList::new();
+    let mut lookfrom: Point3;
+    let mut lookat: Point3;
+    let mut vfov = 40.0;
+    let mut aperture = 0.0;
+    let scene = 2;
+
+    if scene == 1 {
+        world = random_scene();
+        lookfrom = Point3::new(13.0, 2.0, 3.0);
+        lookat = Point3::new(0.0, 0.0, 0.0);
+        vfov = 20.0;
+        aperture = 0.1;
+    } else {
+        world = two_spheres();
+        lookfrom = Point3::new(13.0, 2.0, 3.0);
+        lookat = Point3::new(0.0, 0.0, 0.0);
+        vfov = 20.0;
+    }
 
     // Camera
-    let lookfrom = Point3::new(13.0, 2.0, 3.0);
-    let lookat = Point3::new(0.0, 0.0, 0.0);
     let vup = Vec3::new(0.0, 1.0, 0.0);
     let dist_to_focus = 10.0;
     let aperture = 0.1;
@@ -182,6 +198,29 @@ pub fn random_scene() -> HittableList {
         Point3::new(4.0, 1.0, 0.0),
         1.0,
         material3,
+    )));
+
+    world
+}
+
+pub fn two_spheres() -> HittableList {
+    let mut world = HittableList::new();
+
+    let checker = Arc::new(CheckerTexture::new_with_color(
+        &Vec3::new(0.2, 0.3, 0.1),
+        &Vec3::new(0.9, 0.9, 0.9),
+    ));
+
+    world.add(Arc::new(Sphere::new(
+        Point3::new(0.0, -10.0, 0.0),
+        10.0,
+        Arc::new(Lambertian::new_with_texture(checker.clone())),
+    )));
+
+    world.add(Arc::new(Sphere::new(
+        Point3::new(0.0, 10.0, 0.0),
+        10.0,
+        Arc::new(Lambertian::new_with_texture(checker)),
     )));
 
     world
