@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use crate::material::material::Material;
 
-use super::{hit::Hittable, vec3::Vec3};
+use super::{aabb::Aabb, hit::Hittable, vec3::Vec3};
 
 use Vec3 as Point3;
 
@@ -74,6 +74,21 @@ impl Hittable for MovingSphere {
         rec.set_face_normal(r, &outward_normal);
         rec.material = self.material.clone();
 
+        return true;
+    }
+
+    fn bounding_box(&self, _time0: f64, _time1: f64, output_box: &mut super::aabb::Aabb) -> bool {
+        let box0 = Aabb::new(
+            self.center(_time0) - Vec3::new(self.radius, self.radius, self.radius),
+            self.center(_time0) + Vec3::new(self.radius, self.radius, self.radius),
+        );
+
+        let box1 = Aabb::new(
+            self.center(_time1) - Vec3::new(self.radius, self.radius, self.radius),
+            self.center(_time1) + Vec3::new(self.radius, self.radius, self.radius),
+        );
+
+        *output_box = box0.surrounding_box(&box1);
         return true;
     }
 }

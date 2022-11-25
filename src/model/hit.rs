@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use crate::material::{lambertian::Lambertian, material::Material};
 
-use super::{ray::Ray, vec3::Vec3};
+use super::{aabb::Aabb, ray::Ray, vec3::Vec3};
 use Vec3 as Point3;
 
 #[derive(Clone)]
@@ -11,6 +11,8 @@ pub struct HitRecord {
     pub normal: Vec3,
     pub material: Arc<dyn Material>,
     pub t: f64,
+    pub u: f64,
+    pub v: f64,
     pub front_face: bool,
 }
 
@@ -33,12 +35,15 @@ impl Default for HitRecord {
             material: Arc::new(Lambertian::new(&Vec3::new(0.0, 0.0, 0.0))),
             t: Default::default(),
             front_face: Default::default(),
+            u: Default::default(),
+            v: Default::default(),
         }
     }
 }
 
 pub trait Hittable {
     fn hit(&self, r: &Ray, t_min: f64, t_max: f64, rec: &mut HitRecord) -> bool;
+    fn bounding_box(&self, time0: f64, time1: f64, output_box: &mut Aabb) -> bool;
 }
 
 pub struct HittableList {
@@ -76,5 +81,27 @@ impl Hittable for HittableList {
         }
 
         hit_anything
+    }
+
+    fn bounding_box(&self, time0: f64, time1: f64, output_box: &mut Aabb) -> bool {
+        if self.objects.is_empty() {
+            return false;
+        }
+
+        let mut temp_box = Aabb::new(Vec3::default(), Vec3::default());
+        let mut first_box = true;
+
+        for object in self.objects.iter() {
+            if !object.bounding_box(time0, time1, &mut temp_box) {
+                return false;
+            }
+            *output_box = if first_box {
+                temp_box.clone()
+            } else {
+                output_box.surrounding_box(&temp_box)
+            };
+            first_box = false;
+        }
+        return true;
     }
 }

@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
-use crate::material::material::Material;
+use crate::{material::material::Material, util::rtweekend::PI};
 
-use super::{hit::Hittable, vec3::Vec3};
+use super::{aabb::Aabb, hit::Hittable, vec3::Vec3};
 
 use Vec3 as Point3;
 
@@ -19,6 +19,13 @@ impl Sphere {
             radius: r,
             material: m,
         }
+    }
+
+    fn get_sphere_uv(p: &Point3) -> (f64, f64) {
+        let theta = (-p.y()).acos();
+        let phi = (-p.z()).atan2(p.x()) + PI;
+
+        (phi / (2.0 * PI), theta / PI)
     }
 }
 
@@ -55,6 +62,18 @@ impl Hittable for Sphere {
         let outward_normal = (rec.p - self.center) / self.radius;
         rec.set_face_normal(r, &outward_normal);
         rec.material = self.material.clone();
+        let (u, v) = Sphere::get_sphere_uv(&outward_normal);
+        rec.u = u;
+        rec.v = v;
+
+        return true;
+    }
+
+    fn bounding_box(&self, time0: f64, time1: f64, output_box: &mut super::aabb::Aabb) -> bool {
+        *output_box = Aabb::new(
+            self.center - Vec3::new(self.radius, self.radius, self.radius),
+            self.center + Vec3::new(self.radius, self.radius, self.radius),
+        );
 
         return true;
     }

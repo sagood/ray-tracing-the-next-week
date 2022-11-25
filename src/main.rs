@@ -12,6 +12,7 @@ use model::{
 };
 use Vec3 as Point3;
 
+use texture::checker::CheckerTexture;
 use util::{
     rtweekend::INFINITY,
     rtweekend::{random_double, random_double_by_range},
@@ -24,6 +25,7 @@ use crate::{
 };
 mod material;
 mod model;
+mod texture;
 mod util;
 
 fn main() {
@@ -109,6 +111,16 @@ pub fn random_scene() -> HittableList {
         Point3::new(0.0, -1000.0, 0.0),
         1000.0,
         ground_material,
+    )));
+
+    let checker = Arc::new(CheckerTexture::new_with_color(
+        &Vec3::new(0.2, 0.3, 0.1),
+        &Vec3::new(0.9, 0.9, 0.9),
+    ));
+    world.add(Arc::new(Sphere::new(
+        Point3::new(0.0, -1000.0, 0.0),
+        1000.0,
+        Arc::new(Lambertian::new_with_texture(checker)),
     )));
 
     for a in -11..11 {
