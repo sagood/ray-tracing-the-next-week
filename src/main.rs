@@ -12,7 +12,7 @@ use model::{
 };
 use Vec3 as Point3;
 
-use texture::checker::CheckerTexture;
+use texture::{checker::CheckerTexture, noise::NoiseTexture};
 use util::{
     rtweekend::INFINITY,
     rtweekend::{random_double, random_double_by_range},
@@ -42,19 +42,28 @@ fn main() {
     let mut lookat: Point3;
     let mut vfov = 40.0;
     let mut aperture = 0.0;
-    let scene = 2;
+    let scene = 3;
 
-    if scene == 1 {
-        world = random_scene();
-        lookfrom = Point3::new(13.0, 2.0, 3.0);
-        lookat = Point3::new(0.0, 0.0, 0.0);
-        vfov = 20.0;
-        aperture = 0.1;
-    } else {
-        world = two_spheres();
-        lookfrom = Point3::new(13.0, 2.0, 3.0);
-        lookat = Point3::new(0.0, 0.0, 0.0);
-        vfov = 20.0;
+    match scene {
+        2 => {
+            world = two_spheres();
+            lookfrom = Point3::new(13.0, 2.0, 3.0);
+            lookat = Point3::new(0.0, 0.0, 0.0);
+            vfov = 20.0;
+        }
+        3 => {
+            world = two_perlin_spheres();
+            lookfrom = Point3::new(13.0, 2.0, 3.0);
+            lookat = Point3::new(0.0, 0.0, 0.0);
+            vfov = 20.0;
+        }
+        _ => {
+            world = random_scene();
+            lookfrom = Point3::new(13.0, 2.0, 3.0);
+            lookat = Point3::new(0.0, 0.0, 0.0);
+            vfov = 20.0;
+            aperture = 0.1;
+        }
     }
 
     // Camera
@@ -221,6 +230,26 @@ pub fn two_spheres() -> HittableList {
         Point3::new(0.0, 10.0, 0.0),
         10.0,
         Arc::new(Lambertian::new_with_texture(checker)),
+    )));
+
+    world
+}
+
+pub fn two_perlin_spheres() -> HittableList {
+    let mut world = HittableList::new();
+
+    let pertext = Arc::new(NoiseTexture::default());
+
+    world.add(Arc::new(Sphere::new(
+        Point3::new(0.0, -1000.0, 0.0),
+        1000.0,
+        Arc::new(Lambertian::new_with_texture(pertext.clone())),
+    )));
+
+    world.add(Arc::new(Sphere::new(
+        Point3::new(0.0, 2.0, 0.0),
+        2.0,
+        Arc::new(Lambertian::new_with_texture(pertext)),
     )));
 
     world
