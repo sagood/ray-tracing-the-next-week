@@ -1,4 +1,5 @@
 pub mod aabb;
+pub mod r#box;
 pub mod bvh;
 pub mod camera;
 pub mod color;

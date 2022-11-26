@@ -7,6 +7,7 @@ use material::{diffuse_light::DiffuseLight, material::Material};
 use model::{
     hit::{HitRecord, Hittable},
     moving_sphere::MovingSphere,
+    r#box::Box,
     ray::Ray,
     vec3::Vec3,
     xy_rect::XyRect,
@@ -353,7 +354,25 @@ fn cornell_box() -> HittableList {
         555.0,
         white.clone(),
     )));
-    world.add(Arc::new(XyRect::new(0.0, 555.0, 0.0, 555.0, 555.0, white)));
+    world.add(Arc::new(XyRect::new(
+        0.0,
+        555.0,
+        0.0,
+        555.0,
+        555.0,
+        white.clone(),
+    )));
+
+    world.add(Arc::new(Box::new(
+        &Point3::new(130.0, 0.0, 65.0),
+        &Point3::new(295.0, 165.0, 230.0),
+        white.clone(),
+    )));
+    world.add(Arc::new(Box::new(
+        &Point3::new(265.0, 0.0, 295.0),
+        &Point3::new(430.0, 330.0, 460.0),
+        white.clone(),
+    )));
 
     world
 }
