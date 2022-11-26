@@ -10,6 +10,8 @@ use model::{
     ray::Ray,
     vec3::Vec3,
     xy_rect::XyRect,
+    xz_rect::XzRect,
+    yz_rect::YzRect,
 };
 use Vec3 as Point3;
 
@@ -31,9 +33,8 @@ mod util;
 
 fn main() {
     // Image
-    const ASPECT_RATIO: f64 = 16.0 / 9.0;
-    const IMAGE_WIDTH: usize = 400;
-    const IMAGE_HEIGHT: usize = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as usize;
+    let mut ASPECT_RATIO: f64 = 16.0 / 9.0;
+    let mut IMAGE_WIDTH: usize = 400;
     let mut SAMPLES_PER_PIXEL: usize = 100;
     const MAX_DEPTH: i32 = 50;
 
@@ -45,7 +46,7 @@ fn main() {
     let mut aperture = 0.0;
     let mut background = Vec3::new(0.0, 0.0, 0.0);
 
-    let scene = 5;
+    let scene = 6;
     match scene {
         2 => {
             world = two_spheres();
@@ -76,6 +77,16 @@ fn main() {
             lookat = Point3::new(0.0, 2.0, 0.0);
             vfov = 20.0;
         }
+        6 => {
+            world = cornell_box();
+            ASPECT_RATIO = 1.0;
+            IMAGE_WIDTH = 600;
+            SAMPLES_PER_PIXEL = 200;
+            background = Point3::new(0.0, 0.0, 0.0);
+            lookfrom = Point3::new(278.0, 278.0, -800.0);
+            lookat = Point3::new(278.0, 278.0, 0.0);
+            vfov = 40.0;
+        }
         _ => {
             world = random_scene();
             background = Vec3::new(0.7, 0.8, 1.0);
@@ -86,6 +97,8 @@ fn main() {
         }
     }
 
+    let IMAGE_HEIGHT: usize = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as usize;
+
     // Camera
     let vup = Vec3::new(0.0, 1.0, 0.0);
     let dist_to_focus = 10.0;
@@ -94,7 +107,7 @@ fn main() {
         &lookfrom,
         &lookat,
         &vup,
-        20.0,
+        vfov,
         ASPECT_RATIO,
         aperture,
         dist_to_focus,
@@ -151,7 +164,7 @@ fn ray_color(r: &Ray, background: &Vec3, world: &dyn Hittable, depth: i32) -> Ve
     return emitted + attenuation * ray_color(&scattered, background, world, depth - 1);
 }
 
-pub fn random_scene() -> HittableList {
+fn random_scene() -> HittableList {
     let mut world = HittableList::new();
 
     let ground_material = Arc::new(Lambertian::new(&Vec3::new(0.5, 0.5, 0.5)));
@@ -235,7 +248,7 @@ pub fn random_scene() -> HittableList {
     world
 }
 
-pub fn two_spheres() -> HittableList {
+fn two_spheres() -> HittableList {
     let mut world = HittableList::new();
 
     let checker = Arc::new(CheckerTexture::new_with_color(
@@ -258,7 +271,7 @@ pub fn two_spheres() -> HittableList {
     world
 }
 
-pub fn two_perlin_spheres() -> HittableList {
+fn two_perlin_spheres() -> HittableList {
     let mut world = HittableList::new();
 
     let pertext = Arc::new(NoiseTexture::new(4.0));
@@ -278,7 +291,7 @@ pub fn two_perlin_spheres() -> HittableList {
     world
 }
 
-pub fn earth() -> HittableList {
+fn earth() -> HittableList {
     let mut world = HittableList::new();
 
     let earth_texture = Arc::new(ImageTexture::new("earthmap.jpg".to_owned()));
@@ -290,7 +303,7 @@ pub fn earth() -> HittableList {
     world
 }
 
-pub fn simple_light() -> HittableList {
+fn simple_light() -> HittableList {
     let mut world = HittableList::new();
 
     let pertext = Arc::new(NoiseTexture::new(4.0));
@@ -307,6 +320,40 @@ pub fn simple_light() -> HittableList {
 
     let difflight = Arc::new(DiffuseLight::new_with_color((Vec3::new(4.0, 4.0, 4.0))));
     world.add(Arc::new(XyRect::new(3.0, 5.0, 1.0, 4.0, -2.0, difflight)));
+
+    world
+}
+
+fn cornell_box() -> HittableList {
+    let mut world = HittableList::new();
+
+    let red = Arc::new(Lambertian::new(&Vec3::new(0.65, 0.05, 0.05)));
+    let white = Arc::new(Lambertian::new(&Vec3::new(0.73, 0.73, 0.73)));
+    let green = Arc::new(Lambertian::new(&Vec3::new(0.12, 0.45, 0.15)));
+    let light = Arc::new(DiffuseLight::new_with_color(Vec3::new(15.0, 15.0, 15.0)));
+
+    world.add(Arc::new(YzRect::new(0.0, 555.0, 0.0, 555.0, 555.0, green)));
+    world.add(Arc::new(YzRect::new(0.0, 555.0, 0.0, 555.0, 0.0, red)));
+    world.add(Arc::new(XzRect::new(
+        213.0, 343.0, 227.0, 332.0, 554.0, light,
+    )));
+    world.add(Arc::new(XzRect::new(
+        0.0,
+        555.0,
+        0.0,
+        555.0,
+        0.0,
+        white.clone(),
+    )));
+    world.add(Arc::new(XzRect::new(
+        0.0,
+        555.0,
+        0.0,
+        555.0,
+        555.0,
+        white.clone(),
+    )));
+    world.add(Arc::new(XyRect::new(0.0, 555.0, 0.0, 555.0, 555.0, white)));
 
     world
 }

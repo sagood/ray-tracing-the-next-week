@@ -8,3 +8,5 @@ pub mod ray;
 pub mod sphere;
 pub mod vec3;
 pub mod xy_rect;
+pub mod xz_rect;
+pub mod yz_rect;
