@@ -12,7 +12,7 @@ use model::{
 };
 use Vec3 as Point3;
 
-use texture::{checker::CheckerTexture, noise::NoiseTexture};
+use texture::{checker::CheckerTexture, image::ImageTexture, noise::NoiseTexture};
 use util::{
     rtweekend::INFINITY,
     rtweekend::{random_double, random_double_by_range},
@@ -42,7 +42,7 @@ fn main() {
     let mut lookat: Point3;
     let mut vfov = 40.0;
     let mut aperture = 0.0;
-    let scene = 3;
+    let scene = 4;
 
     match scene {
         2 => {
@@ -53,6 +53,12 @@ fn main() {
         }
         3 => {
             world = two_perlin_spheres();
+            lookfrom = Point3::new(13.0, 2.0, 3.0);
+            lookat = Point3::new(0.0, 0.0, 0.0);
+            vfov = 20.0;
+        }
+        4 => {
+            world = earth();
             lookfrom = Point3::new(13.0, 2.0, 3.0);
             lookat = Point3::new(0.0, 0.0, 0.0);
             vfov = 20.0;
@@ -251,6 +257,18 @@ pub fn two_perlin_spheres() -> HittableList {
         2.0,
         Arc::new(Lambertian::new_with_texture(pertext)),
     )));
+
+    world
+}
+
+pub fn earth() -> HittableList {
+    let mut world = HittableList::new();
+
+    let earth_texture = Arc::new(ImageTexture::new("earthmap.jpg".to_owned()));
+    let earth_surface = Arc::new(Lambertian::new_with_texture(earth_texture));
+    let globe = Arc::new(Sphere::new(Point3::new(0.0, 0.0, 0.0), 2.0, earth_surface));
+
+    world.add(globe);
 
     world
 }
