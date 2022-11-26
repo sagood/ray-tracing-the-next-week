@@ -3,12 +3,13 @@ use std::{
     sync::Arc,
 };
 
-use material::material::Material;
+use material::{diffuse_light::DiffuseLight, material::Material};
 use model::{
     hit::{HitRecord, Hittable},
     moving_sphere::MovingSphere,
     ray::Ray,
     vec3::Vec3,
+    xy_rect::XyRect,
 };
 use Vec3 as Point3;
 
@@ -33,7 +34,7 @@ fn main() {
     const ASPECT_RATIO: f64 = 16.0 / 9.0;
     const IMAGE_WIDTH: usize = 400;
     const IMAGE_HEIGHT: usize = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as usize;
-    const SAMPLES_PER_PIXEL: usize = 100;
+    let mut SAMPLES_PER_PIXEL: usize = 100;
     const MAX_DEPTH: i32 = 50;
 
     // World
@@ -42,29 +43,42 @@ fn main() {
     let mut lookat: Point3;
     let mut vfov = 40.0;
     let mut aperture = 0.0;
-    let scene = 4;
+    let mut background = Vec3::new(0.0, 0.0, 0.0);
 
+    let scene = 5;
     match scene {
         2 => {
             world = two_spheres();
+            background = Vec3::new(0.7, 0.8, 1.0);
             lookfrom = Point3::new(13.0, 2.0, 3.0);
             lookat = Point3::new(0.0, 0.0, 0.0);
             vfov = 20.0;
         }
         3 => {
             world = two_perlin_spheres();
+            background = Vec3::new(0.7, 0.8, 1.0);
             lookfrom = Point3::new(13.0, 2.0, 3.0);
             lookat = Point3::new(0.0, 0.0, 0.0);
             vfov = 20.0;
         }
         4 => {
             world = earth();
+            background = Vec3::new(0.7, 0.8, 1.0);
             lookfrom = Point3::new(13.0, 2.0, 3.0);
             lookat = Point3::new(0.0, 0.0, 0.0);
             vfov = 20.0;
         }
+        5 => {
+            world = simple_light();
+            SAMPLES_PER_PIXEL = 400;
+            background = Vec3::new(0.0, 0.0, 0.0);
+            lookfrom = Point3::new(26.0, 3.0, 6.0);
+            lookat = Point3::new(0.0, 2.0, 0.0);
+            vfov = 20.0;
+        }
         _ => {
             world = random_scene();
+            background = Vec3::new(0.7, 0.8, 1.0);
             lookfrom = Point3::new(13.0, 2.0, 3.0);
             lookat = Point3::new(0.0, 0.0, 0.0);
             vfov = 20.0;
@@ -100,7 +114,7 @@ fn main() {
                 let u = (i as f64 + random_double()) / (IMAGE_WIDTH as f64 - 1.0);
                 let v = (j as f64 + random_double()) / (IMAGE_HEIGHT as f64 - 1.0);
                 let r = camera.get_ray(u, v);
-                pixel_color += ray_color(&r, &world, MAX_DEPTH);
+                pixel_color += ray_color(&r, &background, &world, MAX_DEPTH);
             }
 
             let s = pixel_color.as_color_repr(SAMPLES_PER_PIXEL);
@@ -110,7 +124,7 @@ fn main() {
     eprintln!("\nDone.");
 }
 
-fn ray_color(r: &Ray, world: &dyn Hittable, depth: i32) -> Vec3 {
+fn ray_color(r: &Ray, background: &Vec3, world: &dyn Hittable, depth: i32) -> Vec3 {
     let mut rec = HitRecord::default();
 
     // If we've exceeded the ray bounce limit, no more light is gathered.
@@ -118,20 +132,23 @@ fn ray_color(r: &Ray, world: &dyn Hittable, depth: i32) -> Vec3 {
         return Vec3::new(0.0, 0.0, 0.0);
     }
 
-    if world.hit(r, 0.001, INFINITY, &mut rec) {
-        let mut scattered = Ray::new(&Vec3::new(0.0, 0.0, 0.0), &Vec3::new(0.0, 0.0, 0.0), 0.0);
-        let mut attenuation = Vec3::new(0.0, 0.0, 0.0);
-        if rec
-            .material
-            .scatter(r, &rec, &mut attenuation, &mut scattered)
-        {
-            return attenuation * ray_color(&scattered, world, depth - 1);
-        }
+    // If the ray hits nothing, return the background color
+    if !world.hit(r, 0.001, INFINITY, &mut rec) {
+        return background.clone();
     }
 
-    let unit_direction = r.dir().unit_vector();
-    let t = 0.5 * (unit_direction.y() + 1.0);
-    return (1.0 - t) * Vec3::new(1.0, 1.0, 1.0) + t * Vec3::new(0.5, 0.7, 1.0);
+    let mut scattered = Ray::new(&Vec3::new(0.0, 0.0, 0.0), &Vec3::new(0.0, 0.0, 0.0), 0.0);
+    let mut attenuation = Vec3::new(0.0, 0.0, 0.0);
+    let emitted = rec.material.emitted(rec.u, rec.v, &rec.p);
+
+    if !rec
+        .material
+        .scatter(r, &rec, &mut attenuation, &mut scattered)
+    {
+        return emitted;
+    }
+
+    return emitted + attenuation * ray_color(&scattered, background, world, depth - 1);
 }
 
 pub fn random_scene() -> HittableList {
@@ -269,6 +286,27 @@ pub fn earth() -> HittableList {
     let globe = Arc::new(Sphere::new(Point3::new(0.0, 0.0, 0.0), 2.0, earth_surface));
 
     world.add(globe);
+
+    world
+}
+
+pub fn simple_light() -> HittableList {
+    let mut world = HittableList::new();
+
+    let pertext = Arc::new(NoiseTexture::new(4.0));
+    world.add(Arc::new(Sphere::new(
+        Point3::new(0.0, -1000.0, 0.0),
+        1000.0,
+        Arc::new(Lambertian::new_with_texture(pertext.clone())),
+    )));
+    world.add(Arc::new(Sphere::new(
+        Point3::new(0.0, 2.0, 0.0),
+        2.0,
+        Arc::new(Lambertian::new_with_texture(pertext)),
+    )));
+
+    let difflight = Arc::new(DiffuseLight::new_with_color((Vec3::new(4.0, 4.0, 4.0))));
+    world.add(Arc::new(XyRect::new(3.0, 5.0, 1.0, 4.0, -2.0, difflight)));
 
     world
 }

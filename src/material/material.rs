@@ -1,5 +1,7 @@
 use crate::model::{hit::HitRecord, ray::Ray, vec3::Vec3};
 
+use Vec3 as Point3;
+
 pub trait Material {
     fn scatter(
         &self,
@@ -8,4 +10,8 @@ pub trait Material {
         attenuation: &mut Vec3,
         scattered: &mut Ray,
     ) -> bool;
+
+    fn emitted(&self, u: f64, v: f64, p: &Point3) -> Vec3 {
+        Vec3::new(0.0, 0.0, 0.0)
+    }
 }
