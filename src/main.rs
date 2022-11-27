@@ -9,6 +9,8 @@ use model::{
     moving_sphere::MovingSphere,
     r#box::Box,
     ray::Ray,
+    rotate::RotateY,
+    translate::Translate,
     vec3::Vec3,
     xy_rect::XyRect,
     xz_rect::XzRect,
@@ -373,6 +375,24 @@ fn cornell_box() -> HittableList {
         &Point3::new(430.0, 330.0, 460.0),
         white.clone(),
     )));
+
+    let mut box1: Arc<dyn Hittable> = Arc::new(Box::new(
+        &Point3::new(0.0, 0.0, 0.0),
+        &Point3::new(165.0, 330.0, 165.0),
+        white.clone(),
+    ));
+    box1 = Arc::new(RotateY::new(box1, 15.0));
+    box1 = Arc::new(Translate::new(box1, &Vec3::new(265.0, 0.0, 295.0)));
+    world.add(box1);
+
+    let mut box2: Arc<dyn Hittable> = Arc::new(Box::new(
+        &Point3::new(0.0, 0.0, 0.0),
+        &Point3::new(165.0, 165.0, 165.0),
+        white.clone(),
+    ));
+    box2 = Arc::new(RotateY::new(box2, -18.0));
+    box2 = Arc::new(Translate::new(box2, &Vec3::new(130.0, 0.0, 65.0)));
+    world.add(box2);
 
     world
 }

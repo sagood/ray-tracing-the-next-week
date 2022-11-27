@@ -1,6 +1,6 @@
 use std::{
     fmt::Display,
-    ops::{Add, AddAssign, Div, DivAssign, Index, Mul, MulAssign, Neg, Sub, SubAssign},
+    ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub, SubAssign},
 };
 
 use crate::util::rtweekend::{random_double, random_double_by_range};
@@ -127,6 +127,16 @@ impl Index<i32> for Vec3 {
     fn index(&self, index: i32) -> &Self::Output {
         if index >= 0 && index < 3 {
             return &self.e[index as usize];
+        }
+
+        panic!("Index out of range for Vec3")
+    }
+}
+
+impl IndexMut<i32> for Vec3 {
+    fn index_mut(&mut self, index: i32) -> &mut Self::Output {
+        if index >= 0 && index < 3 {
+            return &mut self.e[index as usize];
         }
 
         panic!("Index out of range for Vec3")

@@ -47,3 +47,12 @@ impl Aabb {
         Aabb::new(small, big)
     }
 }
+
+impl Default for Aabb {
+    fn default() -> Self {
+        Self {
+            minimum: Default::default(),
+            maximum: Default::default(),
+        }
+    }
+}
