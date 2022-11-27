@@ -3,6 +3,7 @@ pub mod r#box;
 pub mod bvh;
 pub mod camera;
 pub mod color;
+pub mod constant_medium;
 pub mod hit;
 pub mod moving_sphere;
 pub mod ray;
