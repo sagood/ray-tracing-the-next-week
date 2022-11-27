@@ -12,7 +12,7 @@ use super::{
     vec3::Vec3,
 };
 
-struct BvhNode {
+pub struct BvhNode {
     pub left: Arc<dyn Hittable>,
     pub right: Arc<dyn Hittable>,
     pub bounding_box: Aabb,
