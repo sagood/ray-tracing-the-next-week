@@ -8,7 +8,7 @@ use crate::{
 use super::material::Material;
 
 pub struct Lambertian {
-    pub albedo: Arc<dyn Texture>,
+    pub albedo: Arc<dyn Texture + Sync + Send>,
 }
 
 impl Lambertian {
@@ -18,7 +18,7 @@ impl Lambertian {
         }
     }
 
-    pub fn new_with_texture(a: Arc<dyn Texture>) -> Lambertian {
+    pub fn new_with_texture(a: Arc<dyn Texture + Sync + Send>) -> Lambertian {
         Lambertian { albedo: a.clone() }
     }
 }

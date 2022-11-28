@@ -8,11 +8,11 @@ use crate::{
 use super::material::Material;
 
 pub struct DiffuseLight {
-    emit: Arc<dyn Texture>,
+    emit: Arc<dyn Texture + Sync + Send>,
 }
 
 impl DiffuseLight {
-    pub fn new(a: Arc<dyn Texture>) -> Self {
+    pub fn new(a: Arc<dyn Texture + Sync + Send>) -> Self {
         Self { emit: a }
     }
 

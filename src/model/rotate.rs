@@ -7,7 +7,7 @@ use super::{aabb::Aabb, hit::Hittable, ray::Ray, vec3::Vec3};
 use Vec3 as Point3;
 
 pub struct RotateY {
-    pub hittable: Arc<dyn Hittable>,
+    pub hittable: Arc<dyn Hittable + Sync + Send>,
     pub sin_theta: f64,
     pub cos_theta: f64,
     pub has_box: bool,
@@ -15,7 +15,7 @@ pub struct RotateY {
 }
 
 impl RotateY {
-    pub fn new(p: Arc<dyn Hittable>, angle: f64) -> Self {
+    pub fn new(p: Arc<dyn Hittable + Sync + Send>, angle: f64) -> Self {
         let radians = degrees_to_radians(angle);
         let sin_theta = radians.sin();
         let cos_theta = radians.cos();

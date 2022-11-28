@@ -1,6 +1,6 @@
 use std::{
     io::{self, Write},
-    sync::Arc,
+    sync::{Arc, Mutex},
 };
 
 use material::{diffuse_light::DiffuseLight, material::Material};
@@ -20,6 +20,7 @@ use model::{
 };
 use Vec3 as Point3;
 
+use rayon::prelude::{IntoParallelIterator, IntoParallelRefMutIterator, ParallelIterator};
 use texture::{checker::CheckerTexture, image::ImageTexture, noise::NoiseTexture};
 use util::{
     rtweekend::INFINITY,
@@ -142,22 +143,40 @@ fn main() {
     // Render
     print!("P3\n{} {}\n255\n", IMAGE_WIDTH, IMAGE_HEIGHT);
 
+    let mut result = vec!["".to_owned(); IMAGE_WIDTH * IMAGE_HEIGHT];
+    let result = Mutex::new(result);
+    let mut v = vec![];
+    for i in 0..IMAGE_WIDTH {
+        v.push(i);
+    }
+
     for j in (0..IMAGE_HEIGHT).rev() {
         eprint!("\rScanlines remaining: {} ", j);
         io::stderr().flush().unwrap();
-        for i in 0..IMAGE_WIDTH {
+
+        v.clone().into_par_iter().for_each(|x| {
             let mut pixel_color = Vec3::new(0.0, 0.0, 0.0);
             for s in 0..SAMPLES_PER_PIXEL {
-                let u = (i as f64 + random_double()) / (IMAGE_WIDTH as f64 - 1.0);
+                let u = (x as f64 + random_double()) / (IMAGE_WIDTH as f64 - 1.0);
                 let v = (j as f64 + random_double()) / (IMAGE_HEIGHT as f64 - 1.0);
                 let r = camera.get_ray(u, v);
                 pixel_color += ray_color(&r, &background, &world, MAX_DEPTH);
             }
 
             let s = pixel_color.as_color_repr(SAMPLES_PER_PIXEL);
-            print!("{}", s);
+            let mut result = result.lock().unwrap();
+            result[x * IMAGE_HEIGHT + j] = s.clone();
+        });
+    }
+
+    let res = result.lock().unwrap();
+    for j in (0..IMAGE_HEIGHT).rev() {
+        for i in 0..IMAGE_WIDTH {
+            let index = i * IMAGE_HEIGHT + j;
+            print!("{}", res[index]);
         }
     }
+
     eprintln!("\nDone.");
 }
 
@@ -218,7 +237,7 @@ fn random_scene() -> HittableList {
             );
 
             if (center - Point3::new(4.0, 0.2, 0.0)).length() > 0.9 {
-                let sphere_material: Arc<dyn Material>;
+                let sphere_material: Arc<dyn Material + Sync + Send>;
 
                 if choose_mat < 0.8 {
                     // diffuse
@@ -397,7 +416,7 @@ fn cornell_box() -> HittableList {
         white.clone(),
     )));
 
-    let mut box1: Arc<dyn Hittable> = Arc::new(Box::new(
+    let mut box1: Arc<dyn Hittable + Sync + Send> = Arc::new(Box::new(
         &Point3::new(0.0, 0.0, 0.0),
         &Point3::new(165.0, 330.0, 165.0),
         white.clone(),
@@ -406,7 +425,7 @@ fn cornell_box() -> HittableList {
     box1 = Arc::new(Translate::new(box1, &Vec3::new(265.0, 0.0, 295.0)));
     world.add(box1);
 
-    let mut box2: Arc<dyn Hittable> = Arc::new(Box::new(
+    let mut box2: Arc<dyn Hittable + Sync + Send> = Arc::new(Box::new(
         &Point3::new(0.0, 0.0, 0.0),
         &Point3::new(165.0, 165.0, 165.0),
         white.clone(),
@@ -456,7 +475,7 @@ fn cornell_smoke() -> HittableList {
         white.clone(),
     )));
 
-    let mut box1: Arc<dyn Hittable> = Arc::new(Box::new(
+    let mut box1: Arc<dyn Hittable + Sync + Send> = Arc::new(Box::new(
         &Point3::new(0.0, 0.0, 0.0),
         &Point3::new(165.0, 330.0, 165.0),
         white.clone(),
@@ -465,7 +484,7 @@ fn cornell_smoke() -> HittableList {
     box1 = Arc::new(Translate::new(box1, &Vec3::new(265.0, 0.0, 295.0)));
     world.add(box1.clone());
 
-    let mut box2: Arc<dyn Hittable> = Arc::new(Box::new(
+    let mut box2: Arc<dyn Hittable + Sync + Send> = Arc::new(Box::new(
         &Point3::new(0.0, 0.0, 0.0),
         &Point3::new(165.0, 165.0, 165.0),
         white.clone(),

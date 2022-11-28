@@ -9,7 +9,7 @@ use Vec3 as Point3;
 pub struct HitRecord {
     pub p: Point3,
     pub normal: Vec3,
-    pub material: Arc<dyn Material>,
+    pub material: Arc<dyn Material + Sync + Send>,
     pub t: f64,
     pub u: f64,
     pub v: f64,
@@ -47,7 +47,7 @@ pub trait Hittable {
 }
 
 pub struct HittableList {
-    pub objects: Vec<Arc<dyn Hittable>>,
+    pub objects: Vec<Arc<dyn Hittable + Sync + Send>>,
 }
 
 impl HittableList {
@@ -57,7 +57,7 @@ impl HittableList {
         }
     }
 
-    pub fn add(&mut self, object: Arc<dyn Hittable>) {
+    pub fn add(&mut self, object: Arc<dyn Hittable + Sync + Send>) {
         self.objects.push(object);
     }
 

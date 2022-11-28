@@ -12,13 +12,17 @@ use super::{
 };
 
 pub struct ConstantMedium {
-    pub boundary: Arc<dyn Hittable>,
-    pub phase_function: Arc<dyn Material>,
+    pub boundary: Arc<dyn Hittable + Sync + Send>,
+    pub phase_function: Arc<dyn Material + Sync + Send>,
     pub neg_inv_density: f64,
 }
 
 impl ConstantMedium {
-    pub fn new_with_texture(b: Arc<dyn Hittable>, d: f64, a: Arc<dyn Texture>) -> ConstantMedium {
+    pub fn new_with_texture(
+        b: Arc<dyn Hittable + Sync + Send>,
+        d: f64,
+        a: Arc<dyn Texture + Sync + Send>,
+    ) -> ConstantMedium {
         ConstantMedium {
             boundary: b,
             neg_inv_density: -1.0 / d,
@@ -26,7 +30,7 @@ impl ConstantMedium {
         }
     }
 
-    pub fn new(b: Arc<dyn Hittable>, d: f64, c: Vec3) -> Self {
+    pub fn new(b: Arc<dyn Hittable + Sync + Send>, d: f64, c: Vec3) -> Self {
         Self {
             boundary: b,
             neg_inv_density: -1.0 / d,

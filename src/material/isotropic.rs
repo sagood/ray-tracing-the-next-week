@@ -8,11 +8,11 @@ use crate::{
 use super::material::Material;
 
 pub struct Isotropic {
-    pub albedo: Arc<dyn Texture>,
+    pub albedo: Arc<dyn Texture + Sync + Send>,
 }
 
 impl Isotropic {
-    pub fn new(a: Arc<dyn Texture>) -> Self {
+    pub fn new(a: Arc<dyn Texture + Sync + Send>) -> Self {
         Self { albedo: a }
     }
 

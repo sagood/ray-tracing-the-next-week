@@ -20,7 +20,7 @@ pub struct Box {
 }
 
 impl Box {
-    pub fn new(p0: &Point3, p1: &Point3, mat: Arc<dyn Material>) -> Self {
+    pub fn new(p0: &Point3, p1: &Point3, mat: Arc<dyn Material + Sync + Send>) -> Self {
         let box_min = p0.clone();
         let box_max = p1.clone();
 

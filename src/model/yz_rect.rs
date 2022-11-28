@@ -5,7 +5,7 @@ use crate::material::material::Material;
 use super::{aabb::Aabb, hit::Hittable, vec3::Vec3};
 
 pub struct YzRect {
-    mp: Arc<dyn Material>,
+    mp: Arc<dyn Material + Sync + Send>,
     y0: f64,
     y1: f64,
     z0: f64,
@@ -14,7 +14,14 @@ pub struct YzRect {
 }
 
 impl YzRect {
-    pub fn new(y0: f64, y1: f64, z0: f64, z1: f64, k: f64, mat: Arc<dyn Material>) -> Self {
+    pub fn new(
+        y0: f64,
+        y1: f64,
+        z0: f64,
+        z1: f64,
+        k: f64,
+        mat: Arc<dyn Material + Sync + Send>,
+    ) -> Self {
         Self {
             y0,
             y1,

@@ -3,12 +3,12 @@ use std::sync::Arc;
 use super::{aabb::Aabb, hit::Hittable, ray::Ray, vec3::Vec3};
 
 pub struct Translate {
-    hittable: Arc<dyn Hittable>,
+    hittable: Arc<dyn Hittable + Sync + Send>,
     offset: Vec3,
 }
 
 impl Translate {
-    pub fn new(p: Arc<dyn Hittable>, displacement: &Vec3) -> Self {
+    pub fn new(p: Arc<dyn Hittable + Sync + Send>, displacement: &Vec3) -> Self {
         Self {
             hittable: p,
             offset: displacement.clone(),

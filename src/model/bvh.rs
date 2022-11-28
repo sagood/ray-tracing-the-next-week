@@ -13,8 +13,8 @@ use super::{
 };
 
 pub struct BvhNode {
-    pub left: Arc<dyn Hittable>,
-    pub right: Arc<dyn Hittable>,
+    pub left: Arc<dyn Hittable + Sync + Send>,
+    pub right: Arc<dyn Hittable + Sync + Send>,
     pub bounding_box: Aabb,
 }
 
@@ -23,7 +23,7 @@ impl BvhNode {
         BvhNode::new(&list.objects, 0, list.objects.len(), time0, time1)
     }
     pub fn new(
-        src_objects: &Vec<Arc<dyn Hittable>>,
+        src_objects: &Vec<Arc<dyn Hittable + Sync + Send>>,
         start: usize,
         end: usize,
         time0: f64,
@@ -105,7 +105,11 @@ impl Hittable for BvhNode {
     }
 }
 
-fn box_compare(a: &Arc<dyn Hittable>, b: &Arc<dyn Hittable>, axis: i32) -> Ordering {
+fn box_compare(
+    a: &Arc<dyn Hittable + Sync + Send>,
+    b: &Arc<dyn Hittable + Sync + Send>,
+    axis: i32,
+) -> Ordering {
     let mut box_a = Aabb::new(Vec3::default(), Vec3::default());
     let mut box_b = Aabb::new(Vec3::default(), Vec3::default());
 
@@ -123,14 +127,23 @@ fn box_compare(a: &Arc<dyn Hittable>, b: &Arc<dyn Hittable>, axis: i32) -> Order
     }
 }
 
-fn box_x_compare(a: &Arc<dyn Hittable>, b: &Arc<dyn Hittable>) -> Ordering {
+fn box_x_compare(
+    a: &Arc<dyn Hittable + Sync + Send>,
+    b: &Arc<dyn Hittable + Sync + Send>,
+) -> Ordering {
     box_compare(a, b, 0)
 }
 
-fn box_y_compare(a: &Arc<dyn Hittable>, b: &Arc<dyn Hittable>) -> Ordering {
+fn box_y_compare(
+    a: &Arc<dyn Hittable + Sync + Send>,
+    b: &Arc<dyn Hittable + Sync + Send>,
+) -> Ordering {
     box_compare(a, b, 1)
 }
 
-fn box_z_compare(a: &Arc<dyn Hittable>, b: &Arc<dyn Hittable>) -> Ordering {
+fn box_z_compare(
+    a: &Arc<dyn Hittable + Sync + Send>,
+    b: &Arc<dyn Hittable + Sync + Send>,
+) -> Ordering {
     box_compare(a, b, 2)
 }

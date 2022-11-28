@@ -9,11 +9,11 @@ use Vec3 as Point3;
 pub struct Sphere {
     pub center: Point3,
     pub radius: f64,
-    pub material: Arc<dyn Material>,
+    pub material: Arc<dyn Material + Sync + Send>,
 }
 
 impl Sphere {
-    pub fn new(cen: Point3, r: f64, m: Arc<dyn Material>) -> Self {
+    pub fn new(cen: Point3, r: f64, m: Arc<dyn Material + Sync + Send>) -> Self {
         Self {
             center: cen,
             radius: r,

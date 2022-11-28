@@ -5,12 +5,15 @@ use crate::model::vec3::Vec3;
 use super::{solid_color::SolidColor, texture::Texture};
 
 pub struct CheckerTexture {
-    pub odd: Arc<dyn Texture>,
-    pub even: Arc<dyn Texture>,
+    pub odd: Arc<dyn Texture + Sync + Send>,
+    pub even: Arc<dyn Texture + Sync + Send>,
 }
 
 impl CheckerTexture {
-    pub fn new(_even: &Arc<dyn Texture>, _odd: &Arc<dyn Texture>) -> Self {
+    pub fn new(
+        _even: &Arc<dyn Texture + Sync + Send>,
+        _odd: &Arc<dyn Texture + Sync + Send>,
+    ) -> Self {
         Self {
             odd: _odd.clone(),
             even: _even.clone(),
